@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bug Predictor - ML</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Bug Predictor</h1>
+            <p>Prédisez automatiquement les fichiers à risque dans votre projet</p>
+        </header>
+
+        <main>
+            <!-- Sélection du modèle -->
+            <section class="model-selection">
+                <h2>Choisir un Modèle</h2>
+                <div class="model-buttons" id="modelButtons">
+                    <button class="model-btn active" data-model="rf">Random Forest</button>
+                    <button class="model-btn" data-model="xgb">XGBoost</button>
+                    <button class="model-btn" data-model="lr">Logistic Regression</button>
+                </div>
+            </section>
+
+            <!-- Tabs: Métriques / Code / Upload / Git -->
+            <section class="input-methods">
+                <h2>Méthode d'Analyse</h2>
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="metrics">📊 Métriques Manuelles</button>
+                    <button class="tab-btn" data-tab="code">📝 Copier/Coller Code</button>
+                    <button class="tab-btn" data-tab="upload">📁 Upload Fichier</button>
+                    <button class="tab-btn" data-tab="git">🔗 Analyser Git</button>
+                </div>
+
+                <!-- Tab Content: Métriques -->
+                <div class="tab-content active" id="metrics-tab">
+                    <form id="predictForm">
+                        <div class="form-grid">
+                            <!-- Ligne 1 -->
+                            <div class="form-group">
+                                <label for="loc">LOC (Lines of Code)</label>
+                                <input type="number" id="loc" name="loc" value="100" step="1" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="vg">v(g) (Cyclomatic Complexity)</label>
+                                <input type="number" id="vg" name="v(g)" value="10" step="1" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="evg">ev(g) (Essential Complexity)</label>
+                                <input type="number" id="evg" name="ev(g)" value="5" step="1" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="ivg">iv(g) (Design Complexity)</label>
+                                <input type="number" id="ivg" name="iv(g)" value="8" step="1" required>
+                            </div>
+
+                            <!-- Ligne 2: Halstead -->
+                            <div class="form-group">
+                                <label for="n">n (Halstead Length)</label>
+                                <input type="number" id="n" name="n" value="200" step="1" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="v">v (Halstead Volume)</label>
+                                <input type="number" id="v" name="v" value="400" step="0.1" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="l">l (Halstead Level)</label>
+                                <input type="number" id="l" name="l" value="0.5" step="0.01" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="d">d (Halstead Difficulty)</label>
+                                <input type="number" id="d" name="d" value="2" step="0.1" required>
+                            </div>
+
+                            <!-- Ligne 3: Halstead suite -->
+                            <div class="form-group">
+                                <label for="i">i (Halstead Intelligence)</label>
+                                <input type="number" id="i" name="i" value="200" step="0.1" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="e">e (Halstead Effort)</label>
+                                <input type="number" id="e" name="e" value="800" step="1" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="b">b (Halstead Bugs)</label>
+                                <input type="number" id="b" name="b" value="0.1" step="0.001" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="t">t (Halstead Time)</label>
+                                <input type="number" id="t" name="t" value="44" step="0.1" required>
+                            </div>
+
+                            <!-- Ligne 4: Lines -->
+                            <div class="form-group">
+                                <label for="lOCode">lOCode (Lines of Code)</label>
+                                <input type="number" id="lOCode" name="lOCode" value="90" step="1" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="lOComment">lOComment (Lines of Comment)</label>
+                                <input type="number" id="lOComment" name="lOComment" value="10" step="1" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="lOBlank">lOBlank (Blank Lines)</label>
+                                <input type="number" id="lOBlank" name="lOBlank" value="5" step="1" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="locCodeAndComment">locCodeAndComment</label>
+                                <input type="number" id="locCodeAndComment" name="locCodeAndComment" value="0" step="1" required>
+                            </div>
+
+                            <!-- Ligne 5: Operands/Operators -->
+                            <div class="form-group">
+                                <label for="uniq_Op">uniq_Op (Unique Operators)</label>
+                                <input type="number" id="uniq_Op" name="uniq_Op" value="15" step="1" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="uniq_Opnd">uniq_Opnd (Unique Operands)</label>
+                                <input type="number" id="uniq_Opnd" name="uniq_Opnd" value="20" step="1" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="total_Op">total_Op (Total Operators)</label>
+                                <input type="number" id="total_Op" name="total_Op" value="50" step="1" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="total_Opnd">total_Opnd (Total Operands)</label>
+                                <input type="number" id="total_Opnd" name="total_Opnd" value="80" step="1" required>
+                            </div>
+
+                            <!-- Ligne 6: Branches -->
+                            <div class="form-group">
+                                <label for="branchCount">branchCount (Number of Branches)</label>
+                                <input type="number" id="branchCount" name="branchCount" value="10" step="1" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-predict">Prédire</button>
+                    </form>
+                </div>
+
+                <!-- Tab Content: Code -->
+                <div class="tab-content" id="code-tab">
+                    <div class="code-input-section">
+                        <label for="codeInput">Collez votre code Python ici :</label>
+                        <textarea id="codeInput" placeholder="def my_function():&#10;    pass" rows="15"></textarea>
+                        <button class="btn-predict" onclick="analyzeCode()">Analyser le Code</button>
+                    </div>
+                </div>
+
+                <!-- Tab Content: Upload -->
+                <div class="tab-content" id="upload-tab">
+                    <div class="upload-section">
+                        <div class="upload-area" id="uploadArea">
+                            <input type="file" id="fileInput" accept=".py,.java,.js,.cpp" multiple hidden>
+                            <div class="upload-icon">📁</div>
+                            <p>Glissez-déposez vos fichiers ici</p>
+                            <p class="upload-hint">ou cliquez pour sélectionner (.py, .java, .js, .cpp)</p>
+                            <button class="btn-upload" onclick="document.getElementById('fileInput').click()">
+                                Choisir des Fichiers
+                            </button>
+                        </div>
+                        <div id="fileList" class="file-list"></div>
+                        <button class="btn-predict" id="analyzeFilesBtn" style="display:none;" onclick="analyzeFiles()">
+                            Analyser les Fichiers
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tab Content: Git -->
+                <div class="tab-content" id="git-tab">
+                    <div class="git-section">
+                        <label for="gitUrl">URL du dépôt Git :</label>
+                        <input type="text" id="gitUrl" placeholder="https://github.com/username/repo.git" class="git-input">
+                        <button class="btn-predict" onclick="analyzeGit()">Analyser le Dépôt</button>
+                        <div id="gitStatus" class="git-status"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Résultats -->
+            <section class="results" id="results" style="display: none;">
+                <h2>Résultat de la Prédiction</h2>
+                <div class="result-card" id="resultCard">
+                    <div class="result-status">
+                        <span class="status-icon" id="statusIcon">⚠️</span>
+                        <h3 id="statusText">Analyse en cours...</h3>
+                    </div>
+                    <div class="result-details">
+                        <div class="detail-item">
+                            <span class="label">Probabilité de Bug:</span>
+                            <span class="value" id="bugProba">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="label">Niveau de Risque:</span>
+                            <span class="badge" id="riskBadge">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="label">Modèle Utilisé:</span>
+                            <span class="value" id="modelUsed">-</span>
+                        </div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Résultats Multiples (pour upload/git) -->
+            <section class="batch-results" id="batchResults" style="display: none;">
+                <h2>Résultats de l'Analyse</h2>
+                <div id="batchResultsContent"></div>
+            </section>
+        </main>
+
+        <footer>
+            <p>Bug Predictor © 2024</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
